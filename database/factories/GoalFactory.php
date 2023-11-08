@@ -21,7 +21,7 @@ class GoalFactory extends Factory
             'user_id' => User::all()->random()->id,
             'type' => $this->faker->randomElement(['V','C']), // Vestibular ou Concurso
             'test_date' => $this->faker->dateTimeBetween('+2 months', '+6 months'),
-            'content_to_study' => $this->faker->randomElement(['Conteudo tal', 'Conteudo fake', 'Teste conteúdo'])
-        ];
+            'content_to_study' => $this->faker->words(2, true)
+         ];
     }
 }
