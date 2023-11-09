@@ -5,10 +5,13 @@ namespace App\Http\Controllers\V1;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\V1\ScheduleResource;
 use App\Models\Schedule;
+use App\Traits\HttpResponses;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class ScheduleController extends Controller
 {
+    use HttpResponses;
     /**
      * Display a listing of the resource.
      */
@@ -18,19 +21,28 @@ class ScheduleController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
     {
-        //
+        $validator = Validator::make($request->all(), [
+            'user_id' => 'required|exists:users,id',
+            'goal_id' => 'required|exists:goals,id',
+            'weekday' => 'required|integer|min:0|max:6',
+            'start_time' => 'required|date_format:H:i',
+            'end_time' => 'required|date_format:H:i|after:start_time'
+        ]);
+
+        if ($validator->fails()) {
+            return $this->error('Invalid Data', 422, $validator->errors());
+        }
+
+        $created = Schedule::create($validator->validated());
+        if ($created) {
+            return $this->success("Registred Data", 200, new ScheduleResource($created));
+        }
+
+        return $this->error('Something went wrong', 400);
     }
 
     /**
@@ -42,19 +54,29 @@ class ScheduleController extends Controller
     }
 
     /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
-
-    /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, Schedule $schedule)
     {
-        //
+        $validator = Validator::make($request->all(), [
+            'user_id' => 'required|exists:users,id',
+            'goal_id' => 'required|exists:goals,id',
+            'weekday' => 'required|integer|min:0|max:6',
+            'start_time' => 'required|date_format:H:i',
+            'end_time' => 'required|date_format:H:i|after:start_time'
+        ]);
+
+        if ($validator->fails()) {
+            return $this->error('Invalid Data', 400, $validator->errors());
+        }
+
+        $created = $schedule->update($validator->validated());
+
+        if ($created) {
+            return $this->success('Registred Data', 200, $schedule);
+        }
+
+        return $this->error('Something went wrong', 400);
     }
 
     /**
@@ -62,6 +84,14 @@ class ScheduleController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $schedule = Schedule::find($id);
+        if ($schedule) {
+            $deleted = $schedule->delete();
+            if ($deleted) {
+                return $this->success('Schedule Deleted', 200);
+            }
+            return $this->error('Something went wrong', 400);
+        }
+        return $this->error('Schedule Not Found', 404);
     }
 }
