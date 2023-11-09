@@ -37,7 +37,8 @@ class GoalController extends Controller
         }
 
         $created = Goal::create($validator->validated());
-        if($created) {
+
+        if ($created) {
             return $this->success('Registered Data', 200, new GoalResource($created));
         }
         return $this->error('Something went wrong', 400);
@@ -68,10 +69,10 @@ class GoalController extends Controller
         }
 
         $updated = $goal->update($validator->validated());
-        if($updated) {
+        if ($updated) {
             return $this->success('Goal Updated', 200, new GoalResource($goal));
         }
-        
+
         return $this->error('Something went wrong', 400);
     }
 
@@ -81,9 +82,9 @@ class GoalController extends Controller
     public function destroy(string $id)
     {
         $goal = Goal::find($id);
-        if($goal) {
+        if ($goal) {
             $deleted = $goal->delete();
-            if($deleted) {
+            if ($deleted) {
                 return $this->success('Goal Deleted', 200);
             }
             return $this->error('Something went wrong', 400);
