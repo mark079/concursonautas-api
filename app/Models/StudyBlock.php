@@ -9,6 +9,8 @@ class StudyBlock extends Model
 {
     use HasFactory;
 
+    protected $fillable = ['user_id', 'goal_id', 'schedule_id', 'content', 'date', 'completed'];
+
     public function user()
     {
         return $this->belongsTo(User::class);
