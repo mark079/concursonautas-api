@@ -29,7 +29,7 @@ class GoalController extends Controller
             'user_id' => 'required|exists:users,id',
             'type' => 'required|in:C,V',
             'test_date' => 'required|date|date_format:Y-m-d',
-            'content_to_study' => 'required|min:6'
+            'content_to_study' => 'required'
         ]);
 
         if ($validator->fails()) {
@@ -61,7 +61,7 @@ class GoalController extends Controller
             'user_id' => 'required|exists:users,id',
             'type' => 'required|in:C,V',
             'test_date' => 'required|date|date_format:Y-m-d',
-            'content_to_study' => 'required|min:6'
+            'content_to_study' => 'required'
         ]);
 
         if ($validator->fails()) {
