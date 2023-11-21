@@ -23,7 +23,7 @@ class ScheduleFactory extends Factory
             'goal_id' => Goal::all()->random()->id,
             'weekday' => $this->faker->numberBetween(0, 6),
             'start_time' => $this->faker->time(),
-            'end_time' => $this->faker->time()
+            // 'end_time' => $this->faker->time()
         ];
     }
 }

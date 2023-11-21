@@ -30,7 +30,7 @@ class ScheduleController extends Controller
             'goal_id' => 'required|exists:goals,id',
             'weekday' => 'required|integer|min:0|max:6',
             'start_time' => 'required|date_format:H:i',
-            'end_time' => 'required|date_format:H:i|after:start_time'
+            // 'end_time' => 'required|date_format:H:i|after:start_time'
         ]);
 
         if ($validator->fails()) {
@@ -63,7 +63,7 @@ class ScheduleController extends Controller
             'goal_id' => 'required|exists:goals,id',
             'weekday' => 'required|integer|min:0|max:6',
             'start_time' => 'required|date_format:H:i',
-            'end_time' => 'required|date_format:H:i|after:start_time'
+            // 'end_time' => 'required|date_format:H:i|after:start_time'
         ]);
 
         if ($validator->fails()) {

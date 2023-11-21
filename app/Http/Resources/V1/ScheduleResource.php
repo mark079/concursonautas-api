@@ -16,7 +16,7 @@ class ScheduleResource extends JsonResource
             'goal' => new GoalResource($this->goal),
             'weekday' => $this->weekdays[$this->weekday],
             'start_time' => $this->start_time,
-            'end_time' => $this->end_time
+            // 'end_time' => $this->end_time
         ];
     }
 }
