@@ -7,7 +7,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class ScheduleResource extends JsonResource
 {
-    private array $weekdays = [0 => 'Segunda', 1 => 'Terça', 2 => 'Quarta', 3 => 'Quinta', 4 => 'Sexta', 5 => 'Sábado', 6 => 'Domingo'];
+    private array $weekdays = [1 => 'Segunda', 2 => 'Terça', 3 => 'Quarta', 4 => 'Quinta', 5 => 'Sexta', 6 => 'Sábado', 7 => 'Domingo'];
     public function toArray(Request $request): array
     {
         return [

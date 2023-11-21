@@ -4,10 +4,39 @@ namespace App\Http\Controllers\V1;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\V1\StudyBlockResource;
+use App\Models\Schedule;
 use App\Models\StudyBlock;
 use App\Traits\HttpResponses;
+use DateTime;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+
+function getWeekdaysUntilDate($endDate, $weekArray, $goal_id)
+{
+    $currentDate = new DateTime('now');
+    $endDateTime = new DateTime($endDate);
+    $weekdays = array();
+
+    while ($currentDate <= $endDateTime) {
+        $dayOfWeek = $currentDate->format('N'); // 1 (Monday) to 7 (Sunday)
+        foreach ($weekArray as $obj) {
+            if ($obj['weekday'] == $dayOfWeek) {
+                $weekdays[] = [
+                    "user_id" => 1,
+                    "goal_id" => $goal_id,
+                    "schedule_id" => $obj['schedule_id'],
+                    "date" => $currentDate->format('Y-m-d'),
+                    "content" => "There are many variations of passages of Lorem Ipsum available",
+                    "completed" => 0,
+                ];
+            }
+        }
+
+        $currentDate->modify('+1 day');
+    }
+
+    return $weekdays;
+}
 
 class StudyBlockController extends Controller
 {
@@ -28,6 +57,19 @@ class StudyBlockController extends Controller
      */
     public function store(Request $request)
     {
+        $weekdays = [];
+        $schedules = Schedule::where('goal_id', '=', $request->all()['goal_id'])->get();
+        foreach ($schedules as $elemento) {
+            $weekdays[] = [
+                'weekday' => $elemento['weekday'],
+                'schedule_id' => $elemento['id']
+            ];
+        }
+        $arrayDate = getWeekdaysUntilDate('2023-12-24', $weekdays, $request->all()['goal_id']);
+        $created = StudyBlock::insert($arrayDate);
+        if($created) {
+            return $this->success('Registred StudyBlock', 200);
+        }
         $validator = Validator::make($request->all(), [
             'user_id' => 'required|exists:users,id',
             'goal_id' => 'required|exists:goals,id',
@@ -69,17 +111,17 @@ class StudyBlockController extends Controller
             'date' => 'required|date_format:Y-m-d',
             'completed' => 'required|in:0,1'
         ]);
-        
-        if($validator->fails()) {
+
+        if ($validator->fails()) {
             return $this->error('Invalid Data', 422, $validator->errors());
         }
 
         $created = $studyBlock->update($validator->validated());
 
-        if($created) {
+        if ($created) {
             return $this->success('StudyBlock Updated', 200, $studyBlock);
         }
-        
+
         return $this->error('Something went wrong', 400);
     }
 

@@ -7,6 +7,7 @@ use App\Http\Resources\V1\ScheduleResource;
 use App\Models\Schedule;
 use App\Traits\HttpResponses;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class ScheduleController extends Controller
@@ -15,8 +16,11 @@ class ScheduleController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
+        if (array_key_exists('goal', $request->query())) {
+            return response()->json(ScheduleResource::collection(Schedule::where([['goal_id', '=', $request->query()['goal']]])->orderBy('date', 'asc')->get()));
+        }
         return response()->json(ScheduleResource::collection(Schedule::all()));
     }
 
@@ -25,21 +29,23 @@ class ScheduleController extends Controller
      */
     public function store(Request $request)
     {
+        // return response()->json($created);
+        
         $validator = Validator::make($request->all(), [
-            'user_id' => 'required|exists:users,id',
-            'goal_id' => 'required|exists:goals,id',
-            'weekday' => 'required|integer|min:0|max:6',
-            'start_time' => 'required|date_format:H:i',
+            '*.user_id' => 'required|exists:users,id',
+            '*.goal_id' => 'required|exists:goals,id',
+            '*.weekday' => 'required|integer|min:1|max:7',
+            '*.start_time' => 'required|date_format:H:i',
             // 'end_time' => 'required|date_format:H:i|after:start_time'
         ]);
-
+        
         if ($validator->fails()) {
             return $this->error('Invalid Data', 422, $validator->errors());
         }
-
-        $created = Schedule::create($validator->validated());
+        
+        $created = Schedule::insert($request->all());
         if ($created) {
-            return $this->success("Registred Data", 200, new ScheduleResource($created));
+            return $this->success("Registred Data", 200);
         }
 
         return $this->error('Something went wrong', 400);
@@ -61,7 +67,7 @@ class ScheduleController extends Controller
         $validator = Validator::make($request->all(), [
             'user_id' => 'required|exists:users,id',
             'goal_id' => 'required|exists:goals,id',
-            'weekday' => 'required|integer|min:0|max:6',
+            'weekday' => 'required|integer|min:1|max:7',
             'start_time' => 'required|date_format:H:i',
             // 'end_time' => 'required|date_format:H:i|after:start_time'
         ]);
