@@ -19,6 +19,7 @@ class StudyBlockResource extends JsonResource
             'user' => new UserResource($this->user),
             'goal' => new GoalResource($this->goal),
             'schedule' => new ScheduleResource($this->schedule),
+            'date' => $this->date,
             'content' => $this->content,
             'completed' => $this->completed
         ];
