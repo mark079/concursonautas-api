@@ -18,7 +18,7 @@ class StudyBlockController extends Controller
     public function index(Request $request)
     {
         if (array_key_exists('goal', $request->query())) {
-            return response()->json(StudyBlockResource::collection(StudyBlock::where([['goal_id', '=', $request->query()['goal']]])->get()));
+            return response()->json(StudyBlockResource::collection(StudyBlock::where([['goal_id', '=', $request->query()['goal']]])->orderBy('date', 'asc')->get()));
         }
         return response()->json(StudyBlockResource::collection(StudyBlock::all()));
     }
