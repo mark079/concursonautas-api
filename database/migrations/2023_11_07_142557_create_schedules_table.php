@@ -19,7 +19,7 @@ return new class extends Migration
             $table->foreign('goal_id')->references('id')->on('goals');
             $table->integer('weekday');
             $table->time('start_time');
-            $table->time('end_time');
+            // $table->time('end_time');
             $table->timestamps();
         });
     }
