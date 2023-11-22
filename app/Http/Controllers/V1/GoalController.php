@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\V1\GoalResource;
 use App\Models\Goal;
 use App\Traits\HttpResponses;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -28,7 +29,13 @@ class GoalController extends Controller
         $validator = Validator::make($request->all(), [
             'user_id' => 'required|exists:users,id',
             'type' => 'required|in:C,V',
-            'test_date' => 'required|date|date_format:Y-m-d',
+            'test_date' => ['required', 'date', 'date_format:Y-m-d', function ($attribute, $value, $fail) {
+                $dataRequisitada = Carbon::parse($value);
+
+                if ($dataRequisitada->lte(Carbon::now()->addWeek())) {
+                    $fail("Data deve ser no mínimo uma semana futura");
+                }
+            }],
             'content_to_study' => 'required'
         ]);
 

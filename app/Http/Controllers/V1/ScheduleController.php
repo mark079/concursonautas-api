@@ -28,9 +28,7 @@ class ScheduleController extends Controller
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
-    {
-        // return response()->json($created);
-        
+    {   
         $validator = Validator::make($request->all(), [
             '*.user_id' => 'required|exists:users,id',
             '*.goal_id' => 'required|exists:goals,id',

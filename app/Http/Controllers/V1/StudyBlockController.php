@@ -4,15 +4,19 @@ namespace App\Http\Controllers\V1;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\V1\StudyBlockResource;
+use App\Models\Goal;
 use App\Models\Schedule;
 use App\Models\StudyBlock;
 use App\Traits\HttpResponses;
 use DateTime;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Validator;
 
-function getWeekdaysUntilDate($endDate, $weekArray, $goal_id)
+function getWeekdaysUntilDate($endDate, $weekArray, $goal_id, $content_to_study)
 {
+
+
     $currentDate = new DateTime('now');
     $endDateTime = new DateTime($endDate);
     $weekdays = array();
@@ -35,6 +39,31 @@ function getWeekdaysUntilDate($endDate, $weekArray, $goal_id)
         $currentDate->modify('+1 day');
     }
 
+    $count = count($weekdays);
+    $response = Http::withHeaders([
+        'Content-Type' => 'application/json',
+        'Authorization' => 'Bearer ' . env('OPENAI_API_KEY'),
+    ])->post('https://api.openai.com/v1/chat/completions', [
+        'model' => 'gpt-4-1106-preview',
+        'messages' => [
+            [
+                'role' => 'user',
+                'content' => "Me retorne $count assuntos para estudar para a prova $content_to_study em formato array",
+            ],
+        ],
+    ]);
+
+    // Obter a resposta
+    $data = $response->json();
+    $data = $data['choices'][0]['message']['content'];
+    $string = $data;
+    $arrayAssuntos = array();
+    if (preg_match('/\[(.+)\]/s', $string, $matches)) {
+        $arrayAssuntos = json_decode($matches[0], true);
+    }
+    for ($i = 0; $i < count($weekdays); $i++) {
+        $weekdays[$i]['content'] = $arrayAssuntos[$i];
+    }
     return $weekdays;
 }
 
@@ -59,15 +88,16 @@ class StudyBlockController extends Controller
     {
         $weekdays = [];
         $schedules = Schedule::where('goal_id', '=', $request->all()['goal_id'])->get();
+        $goal = Goal::where('id', '=', $request->all()['goal_id'])->first();
         foreach ($schedules as $elemento) {
             $weekdays[] = [
                 'weekday' => $elemento['weekday'],
                 'schedule_id' => $elemento['id']
             ];
         }
-        $arrayDate = getWeekdaysUntilDate('2023-12-24', $weekdays, $request->all()['goal_id']);
+        $arrayDate = getWeekdaysUntilDate($goal['test_date'], $weekdays, $request->all()['goal_id'], $goal['content_to_study']);
         $created = StudyBlock::insert($arrayDate);
-        if($created) {
+        if ($created) {
             return $this->success('Registred StudyBlock', 200);
         }
         $validator = Validator::make($request->all(), [
