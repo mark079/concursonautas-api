@@ -45,7 +45,7 @@ function getWeekdaysUntilDate($endDate, $weekArray, $goal_id, $content_to_study)
     ])->timeout(120)->post(
         'http://localhost:3001',
         [
-            'mensagem' => "Me retorne $count assuntos para estudar para a prova $content_to_study em formato array"
+            'mensagem' => "Me retorne $count assuntos para estudar para a prova $content_to_study em formato array, preciso do formato [\"assunto\", \"assunto\"], lembrando que preciso dos $count resultados"
         ],
     );
     // Obter a resposta
