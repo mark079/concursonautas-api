@@ -16,4 +16,5 @@ Route::prefix('v1')->group(function () {
     Route::apiResource('/goals', GoalController::class);
     Route::apiResource('/schedules', ScheduleController::class);
     Route::apiResource('/study-blocks', StudyBlockController::class);
+    Route::put('/study-blocks/{id}/atualizar', [StudyBlockController::class, 'updateCompleted']);
 });

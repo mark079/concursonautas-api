@@ -19,7 +19,9 @@ class GoalResource extends JsonResource
             ],
             'type' => $this->types[$this->type],
             'test_date' => $this->test_date,
-            'content_to_study' => $this->content_to_study
+            'content_to_study' => $this->content_to_study,
+            'studyBlocksCount' => $this->studyBlocks->count(),
+            'studyBlocksCountCompleted' => $this->studyBlocks->where('completed','=', '1')->count()
         ];
     }
 }

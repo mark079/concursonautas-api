@@ -42,27 +42,16 @@ function getWeekdaysUntilDate($endDate, $weekArray, $goal_id, $content_to_study)
     $count = count($weekdays);
     $response = Http::withHeaders([
         'Content-Type' => 'application/json',
-        'Authorization' => 'Bearer ' . env('OPENAI_API_KEY'),
-    ])->post('https://api.openai.com/v1/chat/completions', [
-        'model' => 'gpt-4-1106-preview',
-        'messages' => [
-            [
-                'role' => 'user',
-                'content' => "Me retorne $count assuntos para estudar para a prova $content_to_study em formato array",
-            ],
+    ])->timeout(120)->post(
+        'http://localhost:3001',
+        [
+            'mensagem' => "Me retorne $count assuntos para estudar para a prova $content_to_study em formato array"
         ],
-    ]);
-
+    );
     // Obter a resposta
     $data = $response->json();
-    $data = $data['choices'][0]['message']['content'];
-    $string = $data;
-    $arrayAssuntos = array();
-    if (preg_match('/\[(.+)\]/s', $string, $matches)) {
-        $arrayAssuntos = json_decode($matches[0], true);
-    }
     for ($i = 0; $i < count($weekdays); $i++) {
-        $weekdays[$i]['content'] = $arrayAssuntos[$i];
+        $weekdays[$i]['content'] = $data[$i];
     }
     return $weekdays;
 }
@@ -153,6 +142,23 @@ class StudyBlockController extends Controller
         }
 
         return $this->error('Something went wrong', 400);
+    }
+
+    public function updateCompleted(Request $request, $id)
+    {
+        $completed = $request->all()['completed'];
+        // Encontrar o modelo pelo ID
+        $studyBlock = StudyBlock::find($id);
+
+        // Verificar se o modelo foi encontrado
+        if ($studyBlock) {
+            // Atualizar apenas o campo 'nome'
+            $studyBlock->update(['completed' => $completed]);
+            return $this->success('Registred', 200);
+            // return redirect()->route('sua.rota')->with('success', 'Dado atualizado com sucesso!');
+        } else {
+            return response()->json('error');
+        }
     }
 
     /**
