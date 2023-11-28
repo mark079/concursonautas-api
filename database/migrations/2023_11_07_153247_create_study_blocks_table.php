@@ -18,7 +18,7 @@ return new class extends Migration
             $table->unsignedBigInteger('goal_id');
             $table->foreign('goal_id')->references('id')->on('goals');
             $table->unsignedBigInteger('schedule_id');
-            $table->foreign('schedule_id')->references('id')->on('schedules');
+            $table->foreign('schedule_id')->references('id')->on('schedules')->onDelete('cascade');
             $table->string('content');
             $table->date('date');
             $table->boolean('completed');

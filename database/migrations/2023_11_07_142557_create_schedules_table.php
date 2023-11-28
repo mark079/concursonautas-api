@@ -16,7 +16,7 @@ return new class extends Migration
             $table->unsignedBigInteger('user_id');
             $table->foreign('user_id')->references('id')->on('users');
             $table->unsignedBigInteger('goal_id');
-            $table->foreign('goal_id')->references('id')->on('goals');
+            $table->foreign('goal_id')->references('id')->on('goals')->onDelete('cascade');
             $table->integer('weekday');
             $table->time('start_time');
             // $table->time('end_time');
