@@ -95,8 +95,6 @@ class StudyBlockController extends Controller
         // horários cadastrados para essa meta
         $schedules = Schedule::where('goal_id', '=', $request->all()['goal_id'])->get();
         
-        // [1, 7]
-        // 1 (Monday) 7 (Sunday)
         $arrayWithWeekdayAndScheduleID = [];
 
         // capturando dados da tabela de horários
