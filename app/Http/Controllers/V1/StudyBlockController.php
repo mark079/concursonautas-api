@@ -13,22 +13,28 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Validator;
 
-function getWeekdaysUntilDate($endDate, $weekArray, $goal_id, $content_to_study)
+function getWeekdaysUntilDate($endDate, $arrayWithWeekdayAndScheduleID, $goal_id, $content_to_study)
 {
-
-
+    // Inicializa a data atual
     $currentDate = new DateTime('now');
+    // Converte a data de término para o formato DateTime
     $endDateTime = new DateTime($endDate);
-    $weekdays = array();
+    // Array para armazenar os dias de estudo com seus respectivos cronogramas
+    $studyDaysWithSchedules = array();
 
+    // Itera enquanto a data atual não ultrapassa a data de término
     while ($currentDate <= $endDateTime) {
-        $dayOfWeek = $currentDate->format('N'); // 1 (Monday) to 7 (Sunday)
-        foreach ($weekArray as $obj) {
-            if ($obj['weekday'] == $dayOfWeek) {
-                $weekdays[] = [
+        // Obtém o dia da semana (1 para segunda-feira, 7 para domingo)
+        $dayOfWeek = $currentDate->format('N');
+        
+        // Itera sobre o array com dias da semana e IDs de cronogramas
+        foreach ($arrayWithWeekdayAndScheduleID as $weekdayAndScheduleID) {
+            // Adiciona um novo elemento ao array de dias de estudo, se o dia da semana da data atual corresponder ao dia da semana no array
+            if ($weekdayAndScheduleID['weekday'] == $dayOfWeek) {
+                $studyDaysWithSchedules[] = [
                     "user_id" => 1,
                     "goal_id" => $goal_id,
-                    "schedule_id" => $obj['schedule_id'],
+                    "schedule_id" => $weekdayAndScheduleID['schedule_id'],
                     "date" => $currentDate->format('Y-m-d'),
                     "content" => "There are many variations of passages of Lorem Ipsum available",
                     "completed" => 0,
@@ -39,7 +45,9 @@ function getWeekdaysUntilDate($endDate, $weekArray, $goal_id, $content_to_study)
         $currentDate->modify('+1 day');
     }
 
-    $count = count($weekdays);
+    // Obtém o número de elementos no array de dias de estudo
+    $count = count($studyDaysWithSchedules);
+    
     $response = Http::withHeaders([
         'Content-Type' => 'application/json',
     ])->timeout(120)->post(
@@ -48,12 +56,16 @@ function getWeekdaysUntilDate($endDate, $weekArray, $goal_id, $content_to_study)
             'mensagem' => "Me retorne $count assuntos para estudar para a prova $content_to_study em formato array, preciso do formato [\"Assunto: Subconteudo\", \"Assunto: Subconteudo\"], lembrando que preciso dos $count resultados"
         ],
     );
-    // Obter a resposta
+    
+
     $data = $response->json();
-    for ($i = 0; $i < count($weekdays); $i++) {
-        $weekdays[$i]['content'] = $data[$i];
+
+    for ($i = 0; $i < count($studyDaysWithSchedules); $i++) {
+        $studyDaysWithSchedules[$i]['content'] = $data[$i];
     }
-    return $weekdays;
+
+    // Retorna o array final de dias de estudo
+    return $studyDaysWithSchedules;
 }
 
 class StudyBlockController extends Controller
@@ -64,6 +76,7 @@ class StudyBlockController extends Controller
      */
     public function index(Request $request)
     {
+        // Filtro para retornar apenas os blocos de estudos relacionados com a meta em questão
         if (array_key_exists('goal', $request->query())) {
             return response()->json(StudyBlockResource::collection(StudyBlock::where([['goal_id', '=', $request->query()['goal']]])->orderBy('date', 'asc')->get()));
         }
@@ -75,37 +88,51 @@ class StudyBlockController extends Controller
      */
     public function store(Request $request)
     {
-        $weekdays = [];
-        $schedules = Schedule::where('goal_id', '=', $request->all()['goal_id'])->get();
+        
+        // dados da meta em questão
         $goal = Goal::where('id', '=', $request->all()['goal_id'])->first();
-        foreach ($schedules as $elemento) {
-            $weekdays[] = [
-                'weekday' => $elemento['weekday'],
-                'schedule_id' => $elemento['id']
+        
+        // horários cadastrados para essa meta
+        $schedules = Schedule::where('goal_id', '=', $request->all()['goal_id'])->get();
+        
+        // [1, 7]
+        // 1 (Monday) 7 (Sunday)
+        $arrayWithWeekdayAndScheduleID = [];
+
+        // capturando dados da tabela de horários
+        foreach ($schedules as $schedule) {
+            $arrayWithWeekdayAndScheduleID[] = [
+                'weekday' => $schedule['weekday'],
+                'schedule_id' => $schedule['id']
             ];
         }
-        $arrayDate = getWeekdaysUntilDate($goal['test_date'], $weekdays, $request->all()['goal_id'], $goal['content_to_study']);
+
+        // Obter os dias da semana até a data da prova e montar os objetos prontos para cadastrar
+        $arrayDate = getWeekdaysUntilDate($goal['test_date'], $arrayWithWeekdayAndScheduleID, $request->all()['goal_id'], $goal['content_to_study']);
+        
         $created = StudyBlock::insert($arrayDate);
         if ($created) {
             return $this->success('Registred StudyBlock', 200);
         }
-        $validator = Validator::make($request->all(), [
-            'user_id' => 'required|exists:users,id',
-            'goal_id' => 'required|exists:goals,id',
-            'schedule_id' => 'required|exists:schedules,id',
-            'content' => 'required|min:10',
-            'date' => 'required|date_format:Y-m-d',
-            'completed' => 'required|in:0,1'
-        ]);
 
-        if ($validator->fails()) {
-            return $this->error('Data Invalid', 422, $validator->errors());
-        }
+        // Validação ainda não usada
+        // $validator = Validator::make($request->all(), [
+        //     'user_id' => 'required|exists:users,id',
+        //     'goal_id' => 'required|exists:goals,id',
+        //     'schedule_id' => 'required|exists:schedules,id',
+        //     'content' => 'required|min:10',
+        //     'date' => 'required|date_format:Y-m-d',
+        //     'completed' => 'required|in:0,1'
+        // ]);
 
-        $created = StudyBlock::create($validator->validated());
-        if ($created) {
-            return $this->success('Registred StudyBlock', 200, $created);
-        }
+        // if ($validator->fails()) {
+        //     return $this->error('Data Invalid', 422, $validator->errors());
+        // }
+
+        // $created = StudyBlock::create($validator->validated());
+        // if ($created) {
+        //     return $this->success('Registred StudyBlock', 200, $created);
+        // }
         return $this->error('Something went wrong', 400);
     }
 

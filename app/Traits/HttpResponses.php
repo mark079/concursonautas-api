@@ -15,7 +15,6 @@ trait HttpResponses
         ], $status);
     }
     
-    // é necessário acicionar o MessageBag como tipo, para suporte a resposta do Validator
     public function error(string $message, string|int $status, array|MessageBag $errors = [], array $data = [])
     {
         return response()->json([
