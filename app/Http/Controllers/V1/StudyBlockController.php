@@ -113,25 +113,8 @@ class StudyBlockController extends Controller
             return $this->success('Registred StudyBlock', 200);
         }
 
-        // Validação ainda não usada
-        // $validator = Validator::make($request->all(), [
-        //     'user_id' => 'required|exists:users,id',
-        //     'goal_id' => 'required|exists:goals,id',
-        //     'schedule_id' => 'required|exists:schedules,id',
-        //     'content' => 'required|min:10',
-        //     'date' => 'required|date_format:Y-m-d',
-        //     'completed' => 'required|in:0,1'
-        // ]);
-
-        // if ($validator->fails()) {
-        //     return $this->error('Data Invalid', 422, $validator->errors());
-        // }
-
-        // $created = StudyBlock::create($validator->validated());
-        // if ($created) {
-        //     return $this->success('Registred StudyBlock', 200, $created);
-        // }
         return $this->error('Something went wrong', 400);
+
     }
 
     /**
